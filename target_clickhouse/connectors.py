@@ -74,6 +74,7 @@ class ClickhouseConnector(SQLConnector):
         engine_type: str = "MergeTree",  # Default to MergeTree engine
         table_path: str | None = None,
         replica_name: str | None = None,
+        cluster_name: str | None = None,
     ) -> None:
         """Create an empty target table, using Clickhouse Engine.
 
@@ -83,6 +84,10 @@ class ClickhouseConnector(SQLConnector):
             primary_keys: list of key properties.
             partition_keys: list of partition keys.
             as_temp_table: True to create a temp table.
+            engine_type: Clickhouse engine type.
+            table_path: table path for replicated tables .eg. '/clickhouse/tables/{uuid}/{shard}',
+            replica_name: replica name for replicated tables.
+            cluster_name: cluster name for replicated tables.
 
         Raises:
             NotImplementedError: if temp tables are unsupported and as_temp_table=True.
@@ -129,8 +134,12 @@ class ClickhouseConnector(SQLConnector):
         if replica_name is not None:
             engine_args["replica_name"] = replica_name
 
+        table_args = {}
+        if cluster_name is not None:
+            table_args["clickhouse_cluster"] = cluster_name
+
         table_engine = engine_class(**engine_args)
-        _ = Table(table_name, meta, *columns, table_engine)
+        _ = Table(table_name, meta, *columns, table_engine, **table_args)
         meta.create_all(self._engine)
 
     def prepare_schema(self, _: str) -> None:
