@@ -6,11 +6,12 @@ from typing import TYPE_CHECKING
 import sqlalchemy.types
 from clickhouse_sqlalchemy import (
     Table,
-    engines,
 )
 from singer_sdk import typing as th
 from singer_sdk.connectors import SQLConnector
 from sqlalchemy import Column, MetaData, create_engine
+
+from target_clickhouse.engine_class import get_engine_class
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine
@@ -70,6 +71,9 @@ class ClickhouseConnector(SQLConnector):
         primary_keys: list[str] | None = None,
         partition_keys: list[str] | None = None,
         as_temp_table: bool = False,  # noqa: FBT001, FBT002
+        engine_type: str = "MergeTree",  # Default to MergeTree engine
+        table_path: str | None = None,
+        replica_name: str | None = None,
     ) -> None:
         """Create an empty target table, using Clickhouse Engine.
 
@@ -115,7 +119,17 @@ class ClickhouseConnector(SQLConnector):
                 ),
             )
 
-        table_engine = engines.MergeTree(primary_key=primary_keys)
+        engine_class = get_engine_class(engine_type)
+        if engine_class is None:
+            raise ValueError(f"Unsupported engine type: {engine_type}")
+        
+        engine_args = {"primary_key": primary_keys}
+        if table_path is not None:
+            engine_args["table_path"] = table_path
+        if replica_name is not None:
+            engine_args["replica_name"] = replica_name
+
+        table_engine = engine_class(**engine_args)
         _ = Table(table_name, meta, *columns, table_engine)
         meta.create_all(self._engine)
 
