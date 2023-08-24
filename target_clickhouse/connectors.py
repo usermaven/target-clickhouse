@@ -84,9 +84,9 @@ class ClickhouseConnector(SQLConnector):
             primary_keys: list of key properties.
             partition_keys: list of partition keys.
             as_temp_table: True to create a temp table.
-            engine_type: Clickhouse engine type.
-            table_path: table path for replicated tables .eg. '/clickhouse/tables/{uuid}/{shard}',
-            replica_name: replica name for replicated tables.
+            engine_type: Clickhouse engine type. Must be on of the supported engine types.
+            table_path: table path for replicated tables. Supports macros .eg. '/clickhouse/tables/{uuid}/{shard}',
+            replica_name: replica name for replicated tables. Supports macros .eg. 'replica_{shard}',
             cluster_name: cluster name for replicated tables.
 
         Raises:
