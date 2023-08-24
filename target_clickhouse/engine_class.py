@@ -4,16 +4,11 @@ ENGINE_MAPPING = {
     "MergeTree": engines.MergeTree,
     "ReplacingMergeTree": engines.ReplacingMergeTree,
     "SummingMergeTree": engines.SummingMergeTree,
-    "CollapsingMergeTree": engines.CollapsingMergeTree,
-    "VersionedCollapsingMergeTree": engines.VersionedCollapsingMergeTree,
     "AggregatingMergeTree": engines.AggregatingMergeTree,
-    "GraphiteMergeTree": engines.GraphiteMergeTree,
     "ReplicatedMergeTree": engines.ReplicatedMergeTree,
-    "ReplicatedSummingMergeTree": engines.ReplicatedSummingMergeTree,
-    "ReplicatedCollapsingMergeTree": engines.ReplicatedCollapsingMergeTree,
     "ReplicatedReplacingMergeTree": engines.ReplicatedReplacingMergeTree,
+    "ReplicatedSummingMergeTree": engines.ReplicatedSummingMergeTree,
     "ReplicatedAggregatingMergeTree": engines.ReplicatedAggregatingMergeTree,
-    "ReplicatedVersionedCollapsingMergeTree": engines.ReplicatedVersionedCollapsingMergeTree,
 }
 
 
