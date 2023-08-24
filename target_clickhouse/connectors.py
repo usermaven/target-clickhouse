@@ -11,7 +11,7 @@ from singer_sdk import typing as th
 from singer_sdk.connectors import SQLConnector
 from sqlalchemy import Column, MetaData, create_engine
 
-from target_clickhouse.engine_class import get_engine_class
+from target_clickhouse.engine_class import create_engine_wrapper, SupportedEngines
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine
@@ -72,9 +72,6 @@ class ClickhouseConnector(SQLConnector):
         partition_keys: list[str] | None = None,
         as_temp_table: bool = False,  # noqa: FBT001, FBT002
         engine_type: str = "MergeTree",  # Default to MergeTree engine
-        table_path: str | None = None,
-        replica_name: str | None = None,
-        cluster_name: str | None = None,
     ) -> None:
         """Create an empty target table, using Clickhouse Engine.
 
@@ -85,10 +82,6 @@ class ClickhouseConnector(SQLConnector):
             partition_keys: list of partition keys.
             as_temp_table: True to create a temp table.
             engine_type: Clickhouse engine type. Must be on of the supported engine types.
-            table_path: table path for replicated tables. Supports macros .eg. '/clickhouse/tables/{uuid}/{shard}',
-            replica_name: replica name for replicated tables. Supports macros .eg. 'replica_{shard}',
-            cluster_name: cluster name for replicated tables.
-
         Raises:
             NotImplementedError: if temp tables are unsupported and as_temp_table=True.
             RuntimeError: if a variant schema is passed with no properties defined.
@@ -124,21 +117,14 @@ class ClickhouseConnector(SQLConnector):
                 ),
             )
 
-        engine_class = get_engine_class(engine_type)
-        if engine_class is None:
-            raise ValueError(f"Unsupported engine type: {engine_type}")
+        table_engine = create_engine_wrapper(
+            engine_type=engine_type, primary_keys=primary_keys, config=self.config
+        )
         
-        engine_args = {"primary_key": primary_keys}
-        if table_path is not None:
-            engine_args["table_path"] = table_path
-        if replica_name is not None:
-            engine_args["replica_name"] = replica_name
-
         table_args = {}
-        if cluster_name is not None:
-            table_args["clickhouse_cluster"] = cluster_name
+        if self.config.get("cluster_name"):
+            table_args["clickhouse_cluster"] = self.config.get("cluster_name")
 
-        table_engine = engine_class(**engine_args)
         _ = Table(table_name, meta, *columns, table_engine, **table_args)
         meta.create_all(self._engine)
 
