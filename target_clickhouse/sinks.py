@@ -68,10 +68,8 @@ class ClickhouseSink(SQLSink):
             True if table exists, False if not, None if unsure or undetectable.
         """
         # Need to convert any records with a dict type to a JSON string.
-        # Commented this for the time being, as it's not needed for the current
-        # for record in records:
-        #     for key, value in record.items():
-        #         if isinstance(value, dict):
-        #             record[key] = json.dumps(value)
-
+        for record in records:
+            for key, value in record.items():
+                if isinstance(value, dict):
+                    record[key] = json.dumps(value)
         return super().bulk_insert_records(full_table_name, schema, records)
